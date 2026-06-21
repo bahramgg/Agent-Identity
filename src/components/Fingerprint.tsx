@@ -13,33 +13,31 @@ export type PrintState = "hollow" | "copyable" | "signing" | "real";
  * consistent and the file stays small.
  */
 
-// Concentric loop ridges, opening downward, centred near the top third.
+// Nested vertical-oval ridges, each nearly closed with a small opening at the
+// bottom, plus a central core loop. Reads as a thumbprint rather than arches.
 const RIDGES = buildRidges();
 
 function buildRidges(): string[] {
   const cx = 100;
-  const cy = 96;
+  const cy = 100;
   const paths: string[] = [];
-  const count = 9;
+  const count = 8;
+  const rad = (d: number) => (d * Math.PI) / 180;
+  const pt = (rx: number, ry: number, deg: number): [number, number] => [
+    +(cx + rx * Math.cos(rad(deg))).toFixed(2),
+    +(cy + ry * Math.sin(rad(deg))).toFixed(2),
+  ];
   for (let i = 0; i < count; i++) {
-    const rx = 16 + i * 8.4;
-    const ry = 20 + i * 9.6;
-    const openY = cy + ry * 0.55; // where the loop trails open at the bottom
-    const leftX = cx - rx;
-    const rightX = cx + rx;
-    // arch up and over the top, then the two legs trail down with a gentle bow
-    const d =
-      `M ${leftX.toFixed(1)} ${openY.toFixed(1)} ` +
-      `C ${leftX.toFixed(1)} ${(cy - ry).toFixed(1)}, ${rightX.toFixed(1)} ${(cy - ry).toFixed(1)}, ${rightX.toFixed(1)} ${openY.toFixed(1)} ` +
-      // little inward hooks so the legs read like fingerprint ridges
-      `M ${leftX.toFixed(1)} ${openY.toFixed(1)} ` +
-      `C ${(leftX + 2).toFixed(1)} ${(openY + 14).toFixed(1)}, ${(leftX + 8).toFixed(1)} ${(openY + 20).toFixed(1)}, ${(leftX + 13).toFixed(1)} ${(openY + 22).toFixed(1)} ` +
-      `M ${rightX.toFixed(1)} ${openY.toFixed(1)} ` +
-      `C ${(rightX - 2).toFixed(1)} ${(openY + 14).toFixed(1)}, ${(rightX - 8).toFixed(1)} ${(openY + 20).toFixed(1)}, ${(rightX - 13).toFixed(1)} ${(openY + 22).toFixed(1)}`;
-    paths.push(d);
+    const rx = 12 + i * 8.4;
+    const ry = 16 + i * 9.6;
+    const gap = 20 + (i % 2) * 6; // small opening at the bottom, lightly staggered
+    const [x0, y0] = pt(rx, ry, 90 + gap); // lower-left
+    const [x1, y1] = pt(rx, ry, 90 - gap); // lower-right
+    // large-arc=1, sweep=1 -> the long way up and over the top
+    paths.push(`M ${x0} ${y0} A ${rx} ${ry} 0 1 1 ${x1} ${y1}`);
   }
-  // a small central core (the innermost loop / delta)
-  paths.push(`M 92 92 C 92 84, 108 84, 108 92 C 108 100, 92 100, 92 96`);
+  // central core: a small loop with a hook (the print's centre)
+  paths.push(`M 106 96 C 108 88, 95 86, 94 95 C 93 103, 104 105, 106 99`);
   return paths;
 }
 
@@ -55,14 +53,12 @@ export function Fingerprint({ state }: { state: PrintState }) {
     >
       <defs>
         <clipPath id="fpClip">
-          {RIDGES.map((d, i) => (
-            <path key={`c${i}`} d={d} />
-          ))}
+          <ellipse cx="100" cy="100" rx="62" ry="78" />
         </clipPath>
       </defs>
 
       {/* soft fill that only shows in the "real" state */}
-      <circle className="fp-fill" cx="100" cy="104" r="86" />
+      <circle className="fp-fill" cx="100" cy="102" r="84" />
 
       {/* the ridges themselves */}
       <g>
