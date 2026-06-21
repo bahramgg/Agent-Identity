@@ -1,0 +1,30 @@
+{
+  "name": "agent-identity",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A Ledger makes an agent real. A minimal demo that an AI agent's identity must be anchored in hardware.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start -p ${PORT:-3000}",
+    "lint": "next lint",
+    "test-sign": "tsx scripts/test-sign.ts"
+  },
+  "dependencies": {
+    "@ledgerhq/device-management-kit": "^1.6.0",
+    "@ledgerhq/device-signer-kit-ethereum": "^1.16.0",
+    "@ledgerhq/device-transport-kit-speculos": "^1.2.1",
+    "ethers": "^6.13.4",
+    "next": "15.1.6",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

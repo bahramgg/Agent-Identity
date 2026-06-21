@@ -1,0 +1,13 @@
+# Render deployment. On Render this runs in DEMO mode: no Speculos is reachable,
+# so the Ledger button is disabled and no signature is ever fabricated.
+services:
+  - type: web
+    name: agent-identity
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # SPECULOS_URL is intentionally unset on Render to force DEMO mode.
