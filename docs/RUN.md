@@ -48,12 +48,23 @@ For development with hot reload: `npm run dev`.
 
 ## LIVE mode (two terminals)
 
-You need the **Ethereum app ELF** built for Nano X (`ethereum.elf`). Get it from
-the [app-ethereum](https://github.com/LedgerHQ/app-ethereum) CI build artifacts
-or build it with [ledger-app-builder](https://github.com/LedgerHQ/ledger-app-builder),
+You need the **Ethereum app ELF** for the device model you emulate
+(`ethereum.elf`). Get it from the
+[app-ethereum](https://github.com/LedgerHQ/app-ethereum) CI build artifacts or
+build it with [ledger-app-builder](https://github.com/LedgerHQ/ledger-app-builder),
 then place it at `./speculos/ethereum.elf`.
 
+> The Speculos `-m / --model` must match the model the ELF was built for
+> (`nanox`, `nanosp`, `stax`, `flex`, …) or Speculos exits with
+> `Invalid model in ethereum.elf (<elf> vs <given>)`. The reference build used
+> `nanox`; a Nano S Plus build uses `nanosp`.
+
 ### Terminal 1 — Speculos (keep this open the whole time)
+
+You can run Speculos with **Docker** or, if you cannot pull the image, with
+**pip** (both verified to work for this demo).
+
+**Option A — Docker**
 
 ```bash
 mkdir -p speculos   # put ethereum.elf here
@@ -62,19 +73,29 @@ docker run --rm -it \
   -v "$PWD/speculos:/speculos/apps" \
   -p 5000:5000 \
   ghcr.io/ledgerhq/speculos:latest \
-  --model nanox \
-  --seed "glory promote mansion idle axis finger extra february uncover one trip resource lawn turtle enter monkey nut reveal shorten effort wear leather rabbit retreat" \
+  --model nanosp \
   --display headless \
   --api-port 5000 \
   apps/ethereum.elf
 ```
 
+**Option B — pip (no Docker)**
+
+```bash
+pip install speculos
+sudo apt-get install -y qemu-user-static   # provides qemu-arm-static
+
+speculos -m nanosp --display headless --api-port 5000 ./speculos/ethereum.elf
+```
+
 - The Speculos REST API (screen + buttons + APDU) is now on
   `http://localhost:5000`. You can watch/drive the device at that URL too.
-- The seed above is the canonical Speculos default. With derivation path
-  `44'/60'/0'/0/0` it yields the known address
-  **`0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D`**. The signature verification in
-  this app recovers to that address.
+- With **no `--seed`** Speculos uses its built-in default seed. At derivation
+  path `44'/60'/0'/0/0` that yields the known address
+  **`0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D`**, which is what this app's
+  signature verification recovers to. (Pass `--seed "<mnemonic>"` to use a
+  different key; the app reads whatever address the device reports, so
+  verification still works.)
 
 **Do not close this terminal.** If it stops, the app drops back to DEMO mode.
 
@@ -82,7 +103,8 @@ docker run --rm -it \
 
 Plain EIP-191 personal messages are **clear-signed**: the Ethereum app shows the
 message text and the human approves. **Blind signing does not need to be
-enabled** for this demo.
+enabled** for this demo (verified live: the device shows
+`Review message → Message → Sign message → Message signed`).
 
 The only time you would need it is if the device returns status `0x6a80` ("Blind
 signing not enabled"). If that happens, on the Speculos screen open the Ethereum
