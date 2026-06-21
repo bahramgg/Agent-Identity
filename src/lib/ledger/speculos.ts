@@ -37,7 +37,8 @@ async function exchange(apduHex: string, timeoutMs = 60_000): Promise<Buffer> {
   });
   if (!r.ok) throw new Error(`Speculos APDU HTTP ${r.status}`);
   const json = (await r.json()) as { data: string };
-  const resp = Buffer.from(json.data, "hex");
+  const resp = Buffer.from(json.data ?? "", "hex");
+  if (resp.length < 2) throw new Error("Malformed APDU response from device.");
   const sw = resp.readUInt16BE(resp.length - 2);
   if (sw !== 0x9000) {
     const map: Record<number, string> = {

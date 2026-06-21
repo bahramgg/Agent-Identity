@@ -127,7 +127,8 @@ async function dmkSignMessage(path: string, message: string): Promise<Signature>
     // self-heal a stale session once
     await resetBridge();
     const { signer } = await getBridge();
-    return runAction<Signature>(signer.signMessage(path, message));
+    const out = await runAction<Signature>(signer.signMessage(path, message));
+    return { r: out.r, s: out.s, v: out.v };
   }
 }
 
@@ -146,7 +147,10 @@ export async function getAddress(path: string): Promise<string> {
     } catch (err) {
       if (isDeviceRejection(err)) throw err;
       console.warn("[bridge] DMK getAddress failed, falling back to APDU:", err);
-      useApdu = true;
+      // Latch to APDU permanently only if DMK never even loaded (the ESM/Node
+      // resolution case). A transient device error falls back for this request
+      // only, so DMK is retried next time.
+      if (!dmkApi) useApdu = true;
     }
   }
   return getAddressViaApdu(path);
@@ -159,7 +163,7 @@ export async function signMessage(path: string, message: string): Promise<Signat
     } catch (err) {
       if (isDeviceRejection(err)) throw err;
       console.warn("[bridge] DMK signMessage failed, falling back to APDU:", err);
-      useApdu = true;
+      if (!dmkApi) useApdu = true;
     }
   }
   return signMessageViaApdu(path, message);

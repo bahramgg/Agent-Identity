@@ -40,13 +40,15 @@ export default function Page() {
   const [mode, setMode] = useState<Mode>("checking");
   const [print, setPrint] = useState<PrintState>("hollow");
   const [status, setStatus] = useState<string>(STATUS.idle);
-  const [statusReal, setStatusReal] = useState(false);
   const [message, setMessage] = useState<string>("");
   const [result, setResult] = useState<SignResult | null>(null);
   const [error, setError] = useState<string>("");
   const [busy, setBusy] = useState(false);
   const screenTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const [screenTick, setScreenTick] = useState(0);
+
+  // The status line turns green exactly when the print is real; no separate state.
+  const statusReal = print === "real";
 
   useEffect(() => {
     setMessage(newIdentityMessage());
@@ -78,7 +80,6 @@ export default function Page() {
   const useSoftware = useCallback(() => {
     setError("");
     setResult(null);
-    setStatusReal(false);
     setPrint("copyable");
     setStatus(STATUS.copyable);
     setMessage(newIdentityMessage());
@@ -99,7 +100,6 @@ export default function Page() {
     setError("");
     setResult(null);
     setBusy(true);
-    setStatusReal(false);
     setPrint("signing");
     setStatus(STATUS.signing);
     try {
@@ -113,10 +113,13 @@ export default function Page() {
       if (data.ok && data.verified) {
         setPrint("real");
         setStatus(STATUS.real);
-        setStatusReal(true);
       } else if (data.kind === "rejected") {
         setPrint("hollow");
         setStatus(STATUS.rejected);
+      } else if (data.ok && !data.verified) {
+        // signature did not recover to the device address (handled by the card)
+        setPrint("hollow");
+        setStatus(STATUS.error);
       } else {
         setPrint("hollow");
         setStatus(STATUS.error);
@@ -134,7 +137,6 @@ export default function Page() {
   const reset = useCallback(() => {
     setPrint("hollow");
     setStatus(STATUS.idle);
-    setStatusReal(false);
     setResult(null);
     setError("");
     setMessage(newIdentityMessage());

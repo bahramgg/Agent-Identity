@@ -6,13 +6,16 @@
 // Approve the message on the Speculos screen (or via the device buttons) when
 // prompted. Keep the Speculos terminal open in parallel.
 
-import { Signature, verifyMessage } from "ethers";
 import {
   getAddress,
   signMessage,
   speculosReachable,
 } from "../src/lib/ledger/bridge";
-import { makeChallenge, DERIVATION_PATH } from "../src/lib/identity";
+import {
+  makeChallenge,
+  DERIVATION_PATH,
+  verifyIdentitySignature,
+} from "../src/lib/identity";
 
 async function main() {
   if (!(await speculosReachable())) {
@@ -29,10 +32,11 @@ async function main() {
 
   const address = await getAddress(DERIVATION_PATH);
   const sig = await signMessage(DERIVATION_PATH, message);
-  const v = sig.v < 27 ? sig.v + 27 : sig.v;
-  const serialized = Signature.from({ r: sig.r, s: sig.s, v }).serialized;
-  const recovered = verifyMessage(message, serialized);
-  const verified = recovered.toLowerCase() === address.toLowerCase();
+  const { serialized, recovered, verified } = verifyIdentitySignature(
+    message,
+    sig,
+    address,
+  );
 
   console.log("Device address  :", address);
   console.log("Recovered signer:", recovered);

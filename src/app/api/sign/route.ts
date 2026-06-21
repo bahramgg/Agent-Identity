@@ -1,4 +1,3 @@
-import { Signature, verifyMessage } from "ethers";
 import {
   signMessage,
   getAddress,
@@ -6,7 +5,7 @@ import {
   isDeviceRejection,
   describeError,
 } from "@/lib/ledger/bridge";
-import { DERIVATION_PATH } from "@/lib/identity";
+import { DERIVATION_PATH, verifyIdentitySignature } from "@/lib/identity";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -40,14 +39,13 @@ export async function POST(req: Request) {
     const deviceAddress = await getAddress(DERIVATION_PATH);
     const sig = await signMessage(DERIVATION_PATH, message);
 
-    // Normalise v (Ledger may return 0/1 or 27/28) and verify the signature
-    // recovers to the device's own address. This is the real check that the
-    // identity is anchored in the Secure Element.
-    const v = sig.v < 27 ? sig.v + 27 : sig.v;
-    const serialized = Signature.from({ r: sig.r, s: sig.s, v }).serialized;
-    const recovered = verifyMessage(message, serialized);
-    const verified =
-      recovered.toLowerCase() === deviceAddress.toLowerCase();
+    // Verify the signature recovers to the device's own address. This is the
+    // real check that the identity is anchored in the Secure Element.
+    const { serialized, recovered, verified } = verifyIdentitySignature(
+      message,
+      sig,
+      deviceAddress,
+    );
 
     return Response.json({
       ok: true,
