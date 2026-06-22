@@ -206,7 +206,7 @@ async function dmkSignMessage(path: string, message: string): Promise<Signature>
     // The message is plain human-readable text, so the Ethereum app clear-signs
     // it (the user reads exactly what they approve) without needing originToken.
     const out = await runAction<Signature>(signer.signMessage(path, message), {
-      timeoutMs: 60_000,
+      timeoutMs: 120_000,
       label: "you to review and sign the message",
     });
     return { r: out.r, s: out.s, v: out.v };

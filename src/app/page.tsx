@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Fingerprint, type PrintState } from "@/components/Fingerprint";
 
 const AGENT_ID = "agent-7f3a";
@@ -27,7 +27,7 @@ function newIdentityMessage(): string {
 
 const STATUS = {
   idle: "This agent has no identity it can prove yet.",
-  signing: "Signing the identity message on the Ledger. Review it on the device and approve.",
+  signing: "Open the Ledger signer and approve the message on the device.",
   real: "Identity verified. It is anchored in the Secure Element and cannot be copied.",
   rejected: "Approval was declined on the device. The identity stays unproven.",
   error: "The signing attempt did not complete.",
@@ -41,8 +41,7 @@ export default function Page() {
   const [result, setResult] = useState<SignResult | null>(null);
   const [error, setError] = useState<string>("");
   const [busy, setBusy] = useState(false);
-  const screenTimer = useRef<ReturnType<typeof setInterval> | null>(null);
-  const [screenTick, setScreenTick] = useState(0);
+  const [speculosUrl, setSpeculosUrl] = useState("http://localhost:5000");
 
   const statusReal = print === "real";
 
@@ -52,33 +51,14 @@ export default function Page() {
     fetch("/api/health/device")
       .then((r) => r.json())
       .then((d) => {
-        if (alive) setMode(d.mode === "live" ? "live" : "demo");
+        if (!alive) return;
+        setMode(d.mode === "live" ? "live" : "demo");
+        if (d.speculosUrl) setSpeculosUrl(d.speculosUrl);
       })
       .catch(() => alive && setMode("demo"));
     return () => {
       alive = false;
     };
-  }, []);
-
-  // While signing in live mode, poll the real device screen.
-  useEffect(() => {
-    if (print === "signing" && mode === "live") {
-      screenTimer.current = setInterval(() => setScreenTick((t) => t + 1), 700);
-    } else if (screenTimer.current) {
-      clearInterval(screenTimer.current);
-      screenTimer.current = null;
-    }
-    return () => {
-      if (screenTimer.current) clearInterval(screenTimer.current);
-    };
-  }, [print, mode]);
-
-  const pressButton = useCallback(async (which: "left" | "right" | "both") => {
-    try {
-      await fetch(`/api/device/button/${which}`, { method: "POST" });
-    } catch {
-      /* device gone; the sign call will surface the error */
-    }
   }, []);
 
   const proveWithLedger = useCallback(async () => {
@@ -195,30 +175,21 @@ export default function Page() {
               </div>
 
               {print === "signing" && mode === "live" && (
-                <div>
-                  <div className="field-label">Live device — approve to continue</div>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`/api/device/screen?t=${screenTick}`}
-                    alt="Ledger device screen"
-                    style={{
-                      width: "100%",
-                      borderRadius: 9,
-                      border: "1px solid var(--line)",
-                      background: "#000",
-                    }}
-                  />
-                  <div className="controls" style={{ marginTop: 10 }}>
-                    <button className="btn" onClick={() => pressButton("left")}>
-                      ◀
-                    </button>
-                    <button className="btn" onClick={() => pressButton("right")}>
-                      ▶
-                    </button>
-                    <button className="btn primary" onClick={() => pressButton("both")}>
-                      Approve
-                    </button>
-                  </div>
+                <div className="approve-hint">
+                  <div className="field-label">Waiting for your approval</div>
+                  <p className="note">
+                    The message was sent to the Ledger signer. Open the simulator,
+                    review the message on the device, and approve it there. This
+                    card verifies automatically once you do.
+                  </p>
+                  <a
+                    className="btn primary block"
+                    href={speculosUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Open Ledger signer ↗
+                  </a>
                 </div>
               )}
 
