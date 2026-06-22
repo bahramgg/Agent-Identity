@@ -33,24 +33,14 @@ const STATUS = {
   error: "The signing attempt did not complete.",
 };
 
-// A short scripted exchange the human steps through before signing. "you" lines
-// are offered as the reply you tap; "agent" lines you reveal with Continue.
-type Turn = { who: "agent" | "you"; text: string };
-const SCRIPT: Turn[] = [
-  {
-    who: "agent",
-    text: "Before I act on your behalf, there is something you should know. I can prepare anything in software, but I cannot prove who I am.",
-  },
-  { who: "you", text: "Why not?" },
-  {
-    who: "agent",
-    text: "My credentials are only software, and software can be copied. Anyone could present the same token and claim to be me.",
-  },
-  { who: "you", text: "So how do I trust it is really you?" },
-  {
-    who: "agent",
-    text: "Anchor my identity in your hardware wallet. Let me sign an identity challenge on the Ledger. The key lives in the Secure Element and cannot be copied.",
-  },
+// A short sequence of messages from the agent, revealed one at a time, leading
+// up to the Prove with Ledger step.
+const SCRIPT: string[] = [
+  "I can research, analyze, and prepare actions for you. But there is one thing I cannot do on my own.",
+  "I cannot prove who I am. My credentials are only software, and software can be copied.",
+  "Anyone could present the same token and claim to be me. A copyable secret is not an identity.",
+  "To act with real authority, my identity has to be anchored in hardware — in your wallet's Secure Element.",
+  "Let me sign an identity challenge on your Ledger. Approve it, and my identity becomes real and cannot be forged.",
 ];
 
 export default function Page() {
@@ -66,7 +56,6 @@ export default function Page() {
 
   const statusReal = print === "real";
   const convoDone = step >= SCRIPT.length;
-  const nextTurn = SCRIPT[step];
   const advance = useCallback(
     () => setStep((s) => Math.min(s + 1, SCRIPT.length)),
     [],
@@ -176,9 +165,9 @@ export default function Page() {
             </div>
             <div className="card-body">
               <div className="convo-log">
-                {SCRIPT.slice(0, step).map((t, i) => (
-                  <div key={i} className={`bubble ${t.who}`}>
-                    <p>{t.text}</p>
+                {SCRIPT.slice(0, step).map((text, i) => (
+                  <div key={i} className="bubble agent">
+                    <p>{text}</p>
                   </div>
                 ))}
 
@@ -219,8 +208,8 @@ export default function Page() {
                     Open Ledger signer ↗
                   </a>
                 ) : !convoDone ? (
-                  <button className="btn block reply" onClick={advance}>
-                    {nextTurn.who === "you" ? `“${nextTurn.text}”` : "Continue"}
+                  <button className="btn block" onClick={advance}>
+                    Continue
                   </button>
                 ) : (
                   <button
