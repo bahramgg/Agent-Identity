@@ -48,16 +48,20 @@ For development with hot reload: `npm run dev`.
 
 ## LIVE mode (two terminals)
 
-You need the **Ethereum app ELF** for the device model you emulate
-(`ethereum.elf`). Get it from the
-[app-ethereum](https://github.com/LedgerHQ/app-ethereum) CI build artifacts or
-build it with [ledger-app-builder](https://github.com/LedgerHQ/ledger-app-builder),
-then place it at `./speculos/ethereum.elf`.
+A ready-to-run **Ethereum app ELF** for **Nano S Plus** is bundled at
+[`speculos/ethereum.elf`](../speculos/ethereum.elf), so `npm run live` works out
+of the box with `MODEL=nanosp` (the default). It is the official Ledger Ethereum
+app built for the emulator; emulator / testnet use only.
+
+To emulate a different model, drop in the matching build (from the
+[app-ethereum](https://github.com/LedgerHQ/app-ethereum) CI artifacts or
+[ledger-app-builder](https://github.com/LedgerHQ/ledger-app-builder)) and set
+`MODEL` accordingly.
 
 > The Speculos `-m / --model` must match the model the ELF was built for
 > (`nanox`, `nanosp`, `stax`, `flex`, …) or Speculos exits with
-> `Invalid model in ethereum.elf (<elf> vs <given>)`. The reference build used
-> `nanox`; a Nano S Plus build uses `nanosp`.
+> `Invalid model in ethereum.elf (<elf> vs <given>)`. The bundled ELF is
+> `nanosp`; a Nano X build uses `nanox`.
 
 ### Easiest — one command
 
