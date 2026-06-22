@@ -59,6 +59,26 @@ then place it at `./speculos/ethereum.elf`.
 > `Invalid model in ethereum.elf (<elf> vs <given>)`. The reference build used
 > `nanox`; a Nano S Plus build uses `nanosp`.
 
+### Easiest — one command
+
+If `speculos` is installed (see Option B below) and your ELF is at
+`./speculos/ethereum.elf`, you can boot the emulator and the app together, fully
+locally, with a single command:
+
+```bash
+npm run live
+# open http://localhost:3000  (header shows "Live")
+# Ctrl-C stops both the app and the emulator
+```
+
+`npm run live` runs [`scripts/local-live.sh`](../scripts/local-live.sh): it starts
+Speculos, waits until it is reachable, starts the app pointed at it, and tears the
+emulator down cleanly on exit. Override defaults with env vars, e.g.
+`MODEL=nanox ELF=./speculos/ethereum.elf npm run live`.
+
+The two-terminal setup below is the manual equivalent if you prefer to run the
+pieces yourself.
+
 ### Terminal 1 — Speculos (keep this open the whole time)
 
 You can run Speculos with **Docker** or, if you cannot pull the image, with
