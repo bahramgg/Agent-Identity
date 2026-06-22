@@ -7,6 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start -p ${PORT:-3000}",
+    "live": "bash scripts/local-live.sh",
     "lint": "next lint",
     "test-sign": "tsx scripts/test-sign.ts"
   },
