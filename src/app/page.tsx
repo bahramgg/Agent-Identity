@@ -138,6 +138,47 @@ export default function Page() {
         <section className="panel">
           <p className="tagline">A Ledger makes an agent real.</p>
 
+          {print === "hollow" && (
+            <div className="agent-chat">
+              <div className="bubble">
+                <span className="who">
+                  <span className="who-dot" /> Agent
+                </span>
+                <p>
+                  I can research, analyze, and prepare actions for you. But there
+                  is one thing I cannot do: prove that I am really me.
+                </p>
+              </div>
+              <div className="bubble">
+                <p>
+                  My credentials are only software, and software can be copied.
+                  Anyone could present the same token and claim my identity.
+                </p>
+              </div>
+              <div className="bubble accent">
+                <p>
+                  Anchor me in your hardware wallet. Let me sign an identity
+                  challenge on the Ledger, and my identity becomes real and
+                  cannot be forged.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {print === "real" && (
+            <div className="agent-chat">
+              <div className="bubble accent">
+                <span className="who">
+                  <span className="who-dot" /> Agent
+                </span>
+                <p>
+                  Done. My identity is anchored in the Secure Element now, signed
+                  by you on hardware. You can trust that it is really me.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="controls">
             {print === "real" ? (
               <button className="btn" onClick={reset}>

@@ -78,19 +78,6 @@ export function Fingerprint({ state }: { state: PrintState }) {
       <g clipPath="url(#fpClip)">
         <rect className="scan" x="20" y="96" width="160" height="6" fill="var(--green)" />
       </g>
-
-      {/* verified badge, bottom-right, appears only in real state */}
-      <g className="verify-badge" transform="translate(150 150)">
-        <circle cx="0" cy="0" r="20" fill="var(--green)" />
-        <path
-          d="M -8 0 L -2 7 L 9 -7"
-          fill="none"
-          stroke="#04130c"
-          strokeWidth="3.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </g>
     </svg>
   );
 }
