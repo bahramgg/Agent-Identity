@@ -132,21 +132,19 @@ export default function Page() {
   return (
     <main className="wrap">
       <header className="topbar">
+        <a
+          className="about-link"
+          href="/about"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          About ↗
+        </a>
         <span className="brand">Agent Identity</span>
-        <div className="topbar-right">
-          <a
-            className="about-link"
-            href="/about"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            About ↗
-          </a>
-          <span className={`mode-pill ${mode === "live" ? "live" : ""}`}>
-            <span className="dot" />
-            {mode === "checking" ? "checking" : mode === "live" ? "Live" : "Demo"}
-          </span>
-        </div>
+        <span className={`mode-pill ${mode === "live" ? "live" : ""}`}>
+          <span className="dot" />
+          {mode === "checking" ? "checking" : mode === "live" ? "Live" : "Demo"}
+        </span>
       </header>
 
       <div className="layout">

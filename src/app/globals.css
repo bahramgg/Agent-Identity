@@ -70,24 +70,32 @@ a {
 
 @media (min-width: 880px) {
   .wrap {
-    max-width: 960px;
+    max-width: 1120px;
+    padding-left: 40px;
+    padding-right: 40px;
   }
   .layout {
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    gap: 56px;
+    gap: 72px;
   }
   .stage {
     flex: 0 0 auto;
   }
+  .print-frame {
+    width: 340px;
+    height: 340px;
+  }
   .panel {
-    flex: 0 1 420px;
-    max-width: 420px;
+    flex: 0 1 480px;
+    max-width: 480px;
   }
   .panel .tagline {
     text-align: left;
     margin-left: 0;
+    max-width: none;
+    font-size: 38px;
   }
 }
 
@@ -111,18 +119,26 @@ a {
 
 /* Header */
 .topbar {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  min-height: 34px;
 }
 
+/* Title sits centered at the very top, regardless of the side controls. */
 .brand {
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--ink-dim);
+  color: var(--ink);
+  white-space: nowrap;
 }
 
 .mode-pill {
@@ -171,10 +187,10 @@ a {
 }
 
 .tagline {
-  font-size: 26px;
-  line-height: 1.25;
+  font-size: 30px;
+  line-height: 1.22;
   font-weight: 700;
-  margin: 0 auto 16px;
+  margin: 0 auto 18px;
   text-align: center;
   max-width: 18ch;
   background: linear-gradient(180deg, var(--ink), #bfe9d4);
@@ -202,20 +218,25 @@ a {
 
 .print-frame {
   position: relative;
-  width: 210px;
-  height: 210px;
+  width: 250px;
+  height: 250px;
   display: grid;
   place-items: center;
 }
 
+.print-frame svg {
+  width: 100%;
+  height: 100%;
+}
+
 .status-line {
   text-align: center;
-  font-size: 14px;
+  font-size: 15.5px;
   line-height: 1.5;
   color: var(--ink-dim);
   min-height: 42px;
-  margin-top: 18px;
-  max-width: 38ch;
+  margin-top: 20px;
+  max-width: 34ch;
   transition: color 0.4s ease;
 }
 
@@ -236,10 +257,10 @@ a {
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.02);
   color: var(--ink);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   letter-spacing: 0.01em;
-  padding: 14px 14px;
+  padding: 16px 16px;
   border-radius: 12px;
   cursor: pointer;
   transition: border-color 0.2s ease, background 0.2s ease, transform 0.05s ease;
@@ -472,9 +493,16 @@ a {
   }
 }
 
+@media (max-width: 560px) {
+  .brand {
+    font-size: 15px;
+    letter-spacing: 0.1em;
+  }
+}
+
 @media (max-width: 420px) {
   .tagline {
-    font-size: 23px;
+    font-size: 24px;
   }
   .controls {
     flex-direction: column;
