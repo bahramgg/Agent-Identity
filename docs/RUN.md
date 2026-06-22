@@ -151,9 +151,27 @@ signer, the signature, and `VERIFIED: YES ✓`.
 
 ### How signing works
 
-By default the app signs through the **Ledger Device Management Kit** (`signMessage`),
-with the Speculos transport. If DMK fails to load (for example an ESM resolution
-issue), it automatically falls back to talking to Speculos directly over its HTTP
-APDU endpoint (`POST {SPECULOS_URL}/apdu`) using the app-ethereum
-`SIGN ETH PERSONAL MESSAGE` command (`E0 08 …`). Force one path with
-`LEDGER_TRANSPORT=dmk` or `LEDGER_TRANSPORT=apdu`.
+By default the app signs through the **Ledger Device Management Kit** (`signMessage`)
+with the Speculos transport. The DMK path follows the official **DMK Signing Flow**
+skill (installed under [`.agents/skills/`](../.agents/skills)): device-session →
+device-state gate → Ethereum app management → the signing operation, with a
+60-second human-confirmation timeout and DMK Skills error classification.
+
+If DMK fails to load (for example an ESM resolution issue), it automatically falls
+back to talking to Speculos directly over its HTTP APDU endpoint
+(`POST {SPECULOS_URL}/apdu`) using the app-ethereum `SIGN ETH PERSONAL MESSAGE`
+command (`E0 08 …`). Force one path with `LEDGER_TRANSPORT=dmk` or
+`LEDGER_TRANSPORT=apdu`.
+
+### DMK Skills
+
+The official Ledger DMK Skills are installed in this repo:
+
+```bash
+npx skills add ledgerhq/agent-skills -s ledger-dmk-implementation dmk-intent-vocabulary dmk-business-logic
+```
+
+They are build-time guidance for coding agents (Cursor, Claude Code, etc.) that
+encode Ledger's prescribed DMK integration patterns. They do not run at app
+runtime; the running behaviour lives in `src/lib/ledger/bridge.ts`, which
+implements the flow they describe.
