@@ -65,9 +65,7 @@ To emulate a different model, drop in the matching build (from the
 
 ### Easiest — one command
 
-If `speculos` is installed (see Option B below) and your ELF is at
-`./speculos/ethereum.elf`, you can boot the emulator and the app together, fully
-locally, with a single command:
+Boot the emulator and the app together, fully locally, with a single command:
 
 ```bash
 npm run live
@@ -75,10 +73,18 @@ npm run live
 # Ctrl-C stops both the app and the emulator
 ```
 
-`npm run live` runs [`scripts/local-live.sh`](../scripts/local-live.sh): it starts
-Speculos, waits until it is reachable, starts the app pointed at it, and tears the
-emulator down cleanly on exit. Override defaults with env vars, e.g.
-`MODEL=nanox ELF=./speculos/ethereum.elf npm run live`.
+`npm run live` runs [`scripts/local-live.sh`](../scripts/local-live.sh). It picks a
+Speculos runner automatically:
+
+- the native **`speculos`** CLI if it is installed (see Option B), or
+- the official **Speculos Docker image** if Docker is available — this bundles
+  qemu + python + speculos, so nothing has to compile (handy on newer distros
+  where the pip build of `pygame`/`pillow` fails).
+
+It waits until Speculos is reachable, starts the app pointed at it, and tears the
+emulator down cleanly on exit. Override with env vars, e.g.
+`SPECULOS_RUNNER=docker npm run live`, `MODEL=nanox npm run live`, or
+`ELF=/path/to/ethereum.elf npm run live`.
 
 The two-terminal setup below is the manual equivalent if you prefer to run the
 pieces yourself.
