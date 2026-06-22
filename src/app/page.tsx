@@ -33,15 +33,20 @@ const STATUS = {
   error: "The signing attempt did not complete.",
 };
 
-// A short sequence of messages from the agent, revealed one at a time, leading
-// up to the Prove with Ledger step.
+// Messages spoken by the agent, shown one at a time in a fixed box. "Continue"
+// replaces the current message with the next, leading up to Prove with Ledger.
 const SCRIPT: string[] = [
-  "I can research, analyze, and prepare actions for you. But there is one thing I cannot do on my own.",
-  "I cannot prove who I am. My credentials are only software, and software can be copied.",
-  "Anyone could present the same token and claim to be me. A copyable secret is not an identity.",
-  "To act with real authority, my identity has to be anchored in hardware — in your wallet's Secure Element.",
-  "Let me sign an identity challenge on your Ledger. Approve it, and my identity becomes real and cannot be forged.",
+  "Hey. Before you let me act for you, there's something you should know about me.",
+  "I can read, reason, and prepare anything you ask. But I can't actually prove that I'm me.",
+  "Everything I hold is software, and software can be copied. Someone could clone my token and walk in wearing my face.",
+  "So don't trust my software. Anchor me to your hardware wallet instead — that's something no one can copy.",
+  "Let me sign an identity challenge on your Ledger. Approve it, and from now on it's provably me.",
 ];
+
+const SIGNING_MSG =
+  "The challenge is on your Ledger signer now. Open it, read the message on the device, and approve it. I'll know the moment you do.";
+const VERIFIED_MSG =
+  "That's it. My identity is anchored in your Secure Element now, signed by your hand on hardware. You can trust it's really me.";
 
 export default function Page() {
   const [mode, setMode] = useState<Mode>("checking");
@@ -52,12 +57,12 @@ export default function Page() {
   const [error, setError] = useState<string>("");
   const [busy, setBusy] = useState(false);
   const [speculosUrl, setSpeculosUrl] = useState("http://localhost:5000");
-  const [step, setStep] = useState(1); // how many conversation turns are revealed
+  const [step, setStep] = useState(0); // index of the agent message on screen
 
   const statusReal = print === "real";
-  const convoDone = step >= SCRIPT.length;
+  const isLast = step >= SCRIPT.length - 1;
   const advance = useCallback(
-    () => setStep((s) => Math.min(s + 1, SCRIPT.length)),
+    () => setStep((s) => Math.min(s + 1, SCRIPT.length - 1)),
     [],
   );
 
@@ -123,7 +128,7 @@ export default function Page() {
     setResult(null);
     setError("");
     setMessage(newIdentityMessage());
-    setStep(SCRIPT.length); // keep the conversation; go straight back to the prove step
+    setStep(SCRIPT.length - 1); // back to the final message / prove step
   }, []);
 
   return (
@@ -155,43 +160,32 @@ export default function Page() {
         <section className="panel">
           <p className="tagline">A Ledger makes an agent real.</p>
 
-          {/* Interactive conversation: step through it to reach Prove with Ledger */}
+          {/* The agent speaks, one message at a time in a fixed box */}
           <section className="card convo">
             <div className="card-head">
               <span className="tag">
                 <span className="who-dot" /> Agent
               </span>
-              <span>identity check</span>
+              <span>
+                {print === "signing"
+                  ? "approving"
+                  : print === "real"
+                    ? "verified"
+                    : `${step + 1} / ${SCRIPT.length}`}
+              </span>
             </div>
             <div className="card-body">
-              <div className="convo-log">
-                {SCRIPT.slice(0, step).map((text, i) => (
-                  <div key={i} className="bubble agent">
-                    <p>{text}</p>
-                  </div>
-                ))}
-
-                {print === "signing" && (
-                  <div className="bubble agent accent">
-                    <p>
-                      The challenge is on the Ledger signer. Open it, review the
-                      message on the device, and approve it there. I verify
-                      automatically once you do.
-                    </p>
-                  </div>
+              <div className={`convo-msg ${print === "real" ? "good" : ""}`}>
+                {print === "signing" ? (
+                  <p key="signing">{SIGNING_MSG}</p>
+                ) : print === "real" ? (
+                  <p key="real">{VERIFIED_MSG}</p>
+                ) : (
+                  <p key={step}>{SCRIPT[step]}</p>
                 )}
-
-                {print === "real" && (
-                  <div className="bubble agent accent">
-                    <p>
-                      Done. My identity is anchored in the Secure Element, signed
-                      by you on hardware. You can trust that it is really me.
-                    </p>
-                  </div>
-                )}
-
-                {error && <div className="err">{error}</div>}
               </div>
+
+              {error && <div className="err">{error}</div>}
 
               <div className="convo-foot">
                 {print === "real" ? (
@@ -207,7 +201,7 @@ export default function Page() {
                   >
                     Open Ledger signer ↗
                   </a>
-                ) : !convoDone ? (
+                ) : !isLast ? (
                   <button className="btn block" onClick={advance}>
                     Continue
                   </button>
@@ -225,15 +219,15 @@ export default function Page() {
             </div>
           </section>
 
-          {mode === "demo" && convoDone && (
+          {mode === "demo" && isLast && (
             <p className="note">
               Live signing needs a reachable Speculos emulator. On this hosted
               demo the button is disabled and no signature is ever fabricated.
             </p>
           )}
 
-          {/* The exact identity message that gets clear-signed, shown once you reach the prove step */}
-          {(convoDone || print === "real") && (
+          {/* The exact identity message that gets clear-signed, shown at the prove step */}
+          {isLast && (
             <section className="card">
               <div className="card-head">
                 <span className="tag">Identity message</span>

@@ -244,59 +244,28 @@ a {
   color: var(--green);
 }
 
-/* Agent conversation */
+/* Agent conversation — one message at a time, in a fixed box */
 .convo .card-head .tag {
   display: inline-flex;
   align-items: center;
   gap: 7px;
 }
 
-.convo-log {
+.convo-msg {
+  min-height: 132px;
   display: flex;
-  flex-direction: column;
-  gap: 9px;
+  align-items: center;
 }
 
-.bubble {
-  max-width: 88%;
-  padding: 11px 14px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.015);
-  border-radius: 13px;
-  opacity: 0;
-  transform: translateY(7px);
-  animation: bubble-in 0.32s ease forwards;
-}
-
-.bubble.agent {
-  align-self: flex-start;
-  border-top-left-radius: 4px;
-}
-
-.bubble.you {
-  align-self: flex-end;
-  border-top-right-radius: 4px;
-  border-color: rgba(120, 170, 145, 0.32);
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.bubble.accent {
-  border-color: rgba(22, 193, 114, 0.38);
-  background: rgba(22, 193, 114, 0.07);
-}
-
-.bubble p {
+.convo-msg p {
   margin: 0;
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--ink-dim);
-}
-
-.bubble.you p {
+  font-size: 17px;
+  line-height: 1.5;
   color: var(--ink);
+  animation: msg-in 0.32s ease;
 }
 
-.bubble.accent p {
+.convo-msg.good p {
   color: #cdeede;
 }
 
@@ -308,7 +277,11 @@ a {
   box-shadow: 0 0 8px var(--green-glow);
 }
 
-@keyframes bubble-in {
+@keyframes msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
   to {
     opacity: 1;
     transform: none;
@@ -316,12 +289,7 @@ a {
 }
 
 .convo-foot {
-  margin-top: 14px;
-}
-
-.btn.reply {
-  font-style: italic;
-  color: var(--ink-dim);
+  margin-top: 16px;
 }
 
 /* Controls */
