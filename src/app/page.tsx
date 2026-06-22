@@ -26,11 +26,8 @@ function newIdentityMessage(): string {
 }
 
 const STATUS = {
-  idle: "This agent can think and act in software, but it has no identity it can prove.",
-  copyable:
-    "A software credential is not an identity. It can be copied, so anyone could present the same token. The fingerprint stays hollow.",
-  signing:
-    "Signing the identity message on the Ledger. Review it on the device and approve.",
+  idle: "This agent has no identity it can prove yet.",
+  signing: "Signing the identity message on the Ledger. Review it on the device and approve.",
   real: "Identity verified. It is anchored in the Secure Element and cannot be copied.",
   rejected: "Approval was declined on the device. The identity stays unproven.",
   error: "The signing attempt did not complete.",
@@ -47,7 +44,6 @@ export default function Page() {
   const screenTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const [screenTick, setScreenTick] = useState(0);
 
-  // The status line turns green exactly when the print is real; no separate state.
   const statusReal = print === "real";
 
   useEffect(() => {
@@ -76,14 +72,6 @@ export default function Page() {
       if (screenTimer.current) clearInterval(screenTimer.current);
     };
   }, [print, mode]);
-
-  const useSoftware = useCallback(() => {
-    setError("");
-    setResult(null);
-    setPrint("copyable");
-    setStatus(STATUS.copyable);
-    setMessage(newIdentityMessage());
-  }, []);
 
   const pressButton = useCallback(async (which: "left" | "right" | "both") => {
     try {
@@ -117,7 +105,6 @@ export default function Page() {
         setPrint("hollow");
         setStatus(STATUS.rejected);
       } else if (data.ok && !data.verified) {
-        // signature did not recover to the device address (handled by the card)
         setPrint("hollow");
         setStatus(STATUS.error);
       } else {
@@ -146,142 +133,122 @@ export default function Page() {
     <main className="wrap">
       <header className="topbar">
         <span className="brand">Agent Identity</span>
-        <span className={`mode-pill ${mode === "live" ? "live" : ""}`}>
-          <span className="dot" />
-          {mode === "checking" ? "checking" : mode === "live" ? "Live" : "Demo"}
-        </span>
+        <div className="topbar-right">
+          <a
+            className="about-link"
+            href="/about"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            About ↗
+          </a>
+          <span className={`mode-pill ${mode === "live" ? "live" : ""}`}>
+            <span className="dot" />
+            {mode === "checking" ? "checking" : mode === "live" ? "Live" : "Demo"}
+          </span>
+        </div>
       </header>
 
-      <section className="hero">
-        <h1>An agent is only as real as what it can prove.</h1>
-        <p className="tagline">A Ledger makes an agent real.</p>
-        <p className="subtle">
-          An agent can think, talk, and act in software. But proving who it is
-          cannot come from software, because software can be copied. Identity has
-          to be anchored in hardware.
-        </p>
-      </section>
+      <div className="layout">
+        <section className="stage">
+          <div className="print-frame">
+            <Fingerprint state={print} />
+          </div>
+          <p className={`status-line ${statusReal ? "real" : ""}`}>{status}</p>
+        </section>
 
-      <section className="stage">
-        <div className="print-frame">
-          <Fingerprint state={print} />
-        </div>
-        <p className={`status-line ${statusReal ? "real" : ""}`}>{status}</p>
-      </section>
+        <section className="panel">
+          <p className="tagline">A Ledger makes an agent real.</p>
 
-      <section className="controls">
-        <button
-          className={`btn ${print === "signing" ? "busy" : ""}`}
-          onClick={useSoftware}
-          disabled={busy}
-        >
-          Use software credential
-        </button>
-        {print === "real" ? (
-          <button className="btn" onClick={reset}>
-            Reset
-          </button>
-        ) : (
-          <button
-            className="btn primary"
-            onClick={proveWithLedger}
-            disabled={mode !== "live" || busy}
-            title={mode !== "live" ? "Speculos required for live signing" : ""}
-          >
-            {busy ? "Waiting for device…" : "Prove with Ledger"}
-          </button>
-        )}
-      </section>
-
-      {mode === "demo" && (
-        <p className="note" style={{ marginTop: 10, textAlign: "center" }}>
-          Live signing needs a reachable Speculos emulator. On this hosted demo
-          the Ledger button is disabled and no signature is ever fabricated.
-        </p>
-      )}
-
-      {/* Signing card: shows the exact identity message that gets clear-signed */}
-      <section className="card">
-        <div className="card-head">
-          <span className="tag">Identity message</span>
-          <span>EIP-191 personal_sign · Ethereum</span>
-        </div>
-        <div className="card-body">
-          <div>
-            <div className="field-label">The agent asks the human to sign</div>
-            <div className="msg">{message || "…"}</div>
+          <div className="controls">
+            {print === "real" ? (
+              <button className="btn" onClick={reset}>
+                Reset
+              </button>
+            ) : (
+              <button
+                className="btn primary"
+                onClick={proveWithLedger}
+                disabled={mode !== "live" || busy}
+                title={mode !== "live" ? "Speculos required for live signing" : ""}
+              >
+                {busy ? "Waiting for device…" : "Prove with Ledger"}
+              </button>
+            )}
           </div>
 
-          {print === "signing" && mode === "live" && (
-            <div>
-              <div className="field-label">Live device — approve to continue</div>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`/api/device/screen?t=${screenTick}`}
-                alt="Ledger device screen"
-                style={{
-                  width: "100%",
-                  borderRadius: 9,
-                  border: "1px solid var(--line)",
-                  background: "#000",
-                }}
-              />
-              <div className="controls" style={{ marginTop: 10 }}>
-                <button className="btn" onClick={() => pressButton("left")}>
-                  ◀
-                </button>
-                <button className="btn" onClick={() => pressButton("right")}>
-                  ▶
-                </button>
-                <button className="btn primary" onClick={() => pressButton("both")}>
-                  Approve
-                </button>
-              </div>
-            </div>
-          )}
-
-          {result && result.ok && result.verified && (
-            <>
-              <div className="verified-row">
-                <Check /> Verified — recovers to the Ledger address
-              </div>
-              <div className="kv">
-                <b>Signer</b> {result.address}
-              </div>
-              <div className="kv">
-                <b>Signature</b> {shorten(result.signature)}
-              </div>
-            </>
-          )}
-
-          {result && result.ok && !result.verified && (
-            <div className="err">
-              Signature did not recover to the device address.
-            </div>
-          )}
-
-          {error && <div className="err">{error}</div>}
-
-          {print === "copyable" && (
+          {mode === "demo" && (
             <p className="note">
-              This is an illustrative animation of a known limitation: a copyable
-              secret proves nothing about who is presenting it.
+              Live signing needs a reachable Speculos emulator. On this hosted
+              demo the button is disabled and no signature is ever fabricated.
             </p>
           )}
-        </div>
-      </section>
 
-      <footer className="footer">
-        Agents propose, humans sign, hardware enforces. Agent Identity anchors an
-        agent to the Secure Element rather than to spoofable software
-        credentials.
-        <br />
-        <br />
-        Independent demonstration. Not an official Ledger product and not
-        affiliated with or endorsed by Ledger. Emulator and testnet only. The
-        software-credential state is an illustrative animation, not a live
-        cryptographic operation.
-      </footer>
+          {/* Signing card: the exact identity message that gets clear-signed */}
+          <section className="card">
+            <div className="card-head">
+              <span className="tag">Identity message</span>
+              <span>EIP-191 · Ethereum</span>
+            </div>
+            <div className="card-body">
+              <div>
+                <div className="field-label">The agent asks the human to sign</div>
+                <div className="msg">{message || "…"}</div>
+              </div>
+
+              {print === "signing" && mode === "live" && (
+                <div>
+                  <div className="field-label">Live device — approve to continue</div>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`/api/device/screen?t=${screenTick}`}
+                    alt="Ledger device screen"
+                    style={{
+                      width: "100%",
+                      borderRadius: 9,
+                      border: "1px solid var(--line)",
+                      background: "#000",
+                    }}
+                  />
+                  <div className="controls" style={{ marginTop: 10 }}>
+                    <button className="btn" onClick={() => pressButton("left")}>
+                      ◀
+                    </button>
+                    <button className="btn" onClick={() => pressButton("right")}>
+                      ▶
+                    </button>
+                    <button className="btn primary" onClick={() => pressButton("both")}>
+                      Approve
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {result && result.ok && result.verified && (
+                <>
+                  <div className="verified-row">
+                    <Check /> Verified — recovers to the Ledger address
+                  </div>
+                  <div className="kv">
+                    <b>Signer</b> {result.address}
+                  </div>
+                  <div className="kv">
+                    <b>Signature</b> {shorten(result.signature)}
+                  </div>
+                </>
+              )}
+
+              {result && result.ok && !result.verified && (
+                <div className="err">
+                  Signature did not recover to the device address.
+                </div>
+              )}
+
+              {error && <div className="err">{error}</div>}
+            </div>
+          </section>
+        </section>
+      </div>
     </main>
   );
 }
