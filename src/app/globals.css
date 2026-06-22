@@ -99,12 +99,6 @@ a {
   }
 }
 
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
 .about-link {
   font-size: 12px;
   font-weight: 600;
@@ -173,19 +167,6 @@ a {
   box-shadow: 0 0 10px var(--green-glow);
 }
 
-/* Hero */
-.hero {
-  text-align: center;
-  margin-top: 30px;
-}
-
-.hero h1 {
-  font-size: 22px;
-  font-weight: 600;
-  margin: 0 0 10px;
-  letter-spacing: 0.02em;
-}
-
 .tagline {
   font-size: 30px;
   line-height: 1.22;
@@ -197,14 +178,6 @@ a {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-}
-
-.subtle {
-  color: var(--ink-dim);
-  font-size: 14px;
-  line-height: 1.5;
-  margin: 14px auto 0;
-  max-width: 42ch;
 }
 
 /* Fingerprint stage */
@@ -292,13 +265,7 @@ a {
   margin-top: 16px;
 }
 
-/* Controls */
-.controls {
-  display: flex;
-  gap: 12px;
-  margin-top: 18px;
-}
-
+/* Buttons */
 .btn {
   flex: 1;
   appearance: none;
@@ -352,12 +319,6 @@ a.btn {
   width: 100%;
   flex: none;
   text-align: center;
-}
-
-.approve-hint {
-  display: flex;
-  flex-direction: column;
-  gap: 11px;
 }
 
 /* Signing card */
@@ -495,45 +456,6 @@ a.btn {
   opacity: 0.07;
 }
 
-/* duplicate outline peeling away in software mode */
-.fp-ghost {
-  fill: none;
-  stroke: var(--hollow);
-  stroke-width: 3.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: 0;
-  transform-origin: center;
-}
-
-.fp.copyable .fp-ghost {
-  animation: peel 2.6s ease-out forwards;
-}
-
-@keyframes peel {
-  0% {
-    opacity: 0.5;
-    transform: translate(0, 0) rotate(0deg) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(26px, -18px) rotate(7deg) scale(1.04);
-  }
-}
-
-/* verified badge */
-.verify-badge {
-  opacity: 0;
-  transform: scale(0.6);
-  transform-origin: center;
-  transition: opacity 0.5s ease 0.4s, transform 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) 0.4s;
-}
-
-.fp.real .verify-badge {
-  opacity: 1;
-  transform: scale(1);
-}
-
 /* scanning shimmer while signing */
 .scan {
   opacity: 0;
@@ -568,9 +490,6 @@ a.btn {
 @media (max-width: 420px) {
   .tagline {
     font-size: 24px;
-  }
-  .controls {
-    flex-direction: column;
   }
 }
 

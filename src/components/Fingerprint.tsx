@@ -1,13 +1,12 @@
 "use client";
 
-export type PrintState = "hollow" | "copyable" | "signing" | "real";
+export type PrintState = "hollow" | "signing" | "real";
 
 /**
- * A clean, line-art fingerprint. It is one element with several visual states:
- *  - hollow:   faint outline only (a copyable software secret is not an identity)
- *  - copyable: hollow + a duplicate outline peeling away (anyone can present it)
+ * A clean, line-art fingerprint. One element with three visual states:
+ *  - hollow:   faint outline only (no proven identity yet)
  *  - signing:  a scan sweep while the Ledger round-trip is in flight
- *  - real:     filled, green, with a small verified mark (anchored in hardware)
+ *  - real:     filled and green (the identity is anchored in hardware)
  *
  * The ridges are generated from a small set of parameters so the line-art stays
  * consistent and the file stays small.
@@ -64,13 +63,6 @@ export function Fingerprint({ state }: { state: PrintState }) {
       <g>
         {RIDGES.map((d, i) => (
           <path key={i} className="fp-path" d={d} />
-        ))}
-      </g>
-
-      {/* duplicate outline that peels away in software / copyable mode */}
-      <g className="fp-ghost-group">
-        {RIDGES.slice(0, 6).map((d, i) => (
-          <path key={`g${i}`} className="fp-ghost" d={d} />
         ))}
       </g>
 

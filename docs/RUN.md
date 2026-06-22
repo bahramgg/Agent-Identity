@@ -38,9 +38,9 @@ npm run start
 # open http://localhost:3000
 ```
 
-`SPECULOS_URL` is unset, so the header shows **Demo**. Click **Use software
-credential** to see the hollow fingerprint and the "a copyable secret is not an
-identity" animation. **Prove with Ledger** is disabled.
+`SPECULOS_URL` is unset, so the header shows **Demo**. You can step through the
+agent's intro, but **Prove with Ledger** is disabled — no signature is ever
+fabricated without a reachable device.
 
 For development with hot reload: `npm run dev`.
 
@@ -150,14 +150,15 @@ SPECULOS_URL=http://localhost:5000 npm run dev
 # open http://localhost:3000
 ```
 
-The header now shows **Live**. Click **Prove with Ledger**:
+The header now shows **Live**. Step through the agent's intro, then click
+**Prove with Ledger**:
 
 1. The app generates a short identity message
    (`I am agent-7f3a. Identity challenge: 0x….`) and sends it to the device.
-2. The Speculos screen appears inside the signing card. Use **◀ / ▶** to review
-   and **Approve** to sign (or approve directly in the Speculos window).
+2. Click **Open Ledger signer ↗** to open the Speculos window, review the message
+   on the device, and approve it there.
 3. On approval the signature is verified to recover to the device address and the
-   fingerprint fills green with a verified mark.
+   fingerprint fills green.
 
 ### Quick CLI check (no browser)
 
@@ -185,7 +186,7 @@ By default the app signs through the **Ledger Device Management Kit** (`signMess
 with the Speculos transport. The DMK path follows the official **DMK Signing Flow**
 skill (installed under [`.agents/skills/`](../.agents/skills)): device-session →
 device-state gate → Ethereum app management → the signing operation, with a
-60-second human-confirmation timeout and DMK Skills error classification.
+human-confirmation timeout and DMK Skills error classification.
 
 If DMK fails to load (for example an ESM resolution issue), it automatically falls
 back to talking to Speculos directly over its HTTP APDU endpoint
