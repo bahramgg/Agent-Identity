@@ -33,6 +33,26 @@ const STATUS = {
   error: "The signing attempt did not complete.",
 };
 
+// A short scripted exchange the human steps through before signing. "you" lines
+// are offered as the reply you tap; "agent" lines you reveal with Continue.
+type Turn = { who: "agent" | "you"; text: string };
+const SCRIPT: Turn[] = [
+  {
+    who: "agent",
+    text: "Before I act on your behalf, there is something you should know. I can prepare anything in software, but I cannot prove who I am.",
+  },
+  { who: "you", text: "Why not?" },
+  {
+    who: "agent",
+    text: "My credentials are only software, and software can be copied. Anyone could present the same token and claim to be me.",
+  },
+  { who: "you", text: "So how do I trust it is really you?" },
+  {
+    who: "agent",
+    text: "Anchor my identity in your hardware wallet. Let me sign an identity challenge on the Ledger. The key lives in the Secure Element and cannot be copied.",
+  },
+];
+
 export default function Page() {
   const [mode, setMode] = useState<Mode>("checking");
   const [print, setPrint] = useState<PrintState>("hollow");
@@ -42,8 +62,15 @@ export default function Page() {
   const [error, setError] = useState<string>("");
   const [busy, setBusy] = useState(false);
   const [speculosUrl, setSpeculosUrl] = useState("http://localhost:5000");
+  const [step, setStep] = useState(1); // how many conversation turns are revealed
 
   const statusReal = print === "real";
+  const convoDone = step >= SCRIPT.length;
+  const nextTurn = SCRIPT[step];
+  const advance = useCallback(
+    () => setStep((s) => Math.min(s + 1, SCRIPT.length)),
+    [],
+  );
 
   useEffect(() => {
     setMessage(newIdentityMessage());
@@ -107,6 +134,7 @@ export default function Page() {
     setResult(null);
     setError("");
     setMessage(newIdentityMessage());
+    setStep(SCRIPT.length); // keep the conversation; go straight back to the prove step
   }, []);
 
   return (
@@ -138,91 +166,50 @@ export default function Page() {
         <section className="panel">
           <p className="tagline">A Ledger makes an agent real.</p>
 
-          {print === "hollow" && (
-            <div className="agent-chat">
-              <div className="bubble">
-                <span className="who">
-                  <span className="who-dot" /> Agent
-                </span>
-                <p>
-                  I can research, analyze, and prepare actions for you. But there
-                  is one thing I cannot do: prove that I am really me.
-                </p>
-              </div>
-              <div className="bubble">
-                <p>
-                  My credentials are only software, and software can be copied.
-                  Anyone could present the same token and claim my identity.
-                </p>
-              </div>
-              <div className="bubble accent">
-                <p>
-                  Anchor me in your hardware wallet. Let me sign an identity
-                  challenge on the Ledger, and my identity becomes real and
-                  cannot be forged.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {print === "real" && (
-            <div className="agent-chat">
-              <div className="bubble accent">
-                <span className="who">
-                  <span className="who-dot" /> Agent
-                </span>
-                <p>
-                  Done. My identity is anchored in the Secure Element now, signed
-                  by you on hardware. You can trust that it is really me.
-                </p>
-              </div>
-            </div>
-          )}
-
-          <div className="controls">
-            {print === "real" ? (
-              <button className="btn" onClick={reset}>
-                Reset
-              </button>
-            ) : (
-              <button
-                className="btn primary"
-                onClick={proveWithLedger}
-                disabled={mode !== "live" || busy}
-                title={mode !== "live" ? "Speculos required for live signing" : ""}
-              >
-                {busy ? "Waiting for device…" : "Prove with Ledger"}
-              </button>
-            )}
-          </div>
-
-          {mode === "demo" && (
-            <p className="note">
-              Live signing needs a reachable Speculos emulator. On this hosted
-              demo the button is disabled and no signature is ever fabricated.
-            </p>
-          )}
-
-          {/* Signing card: the exact identity message that gets clear-signed */}
-          <section className="card">
+          {/* Interactive conversation: step through it to reach Prove with Ledger */}
+          <section className="card convo">
             <div className="card-head">
-              <span className="tag">Identity message</span>
-              <span>EIP-191 · Ethereum</span>
+              <span className="tag">
+                <span className="who-dot" /> Agent
+              </span>
+              <span>identity check</span>
             </div>
             <div className="card-body">
-              <div>
-                <div className="field-label">The agent asks the human to sign</div>
-                <div className="msg">{message || "…"}</div>
+              <div className="convo-log">
+                {SCRIPT.slice(0, step).map((t, i) => (
+                  <div key={i} className={`bubble ${t.who}`}>
+                    <p>{t.text}</p>
+                  </div>
+                ))}
+
+                {print === "signing" && (
+                  <div className="bubble agent accent">
+                    <p>
+                      The challenge is on the Ledger signer. Open it, review the
+                      message on the device, and approve it there. I verify
+                      automatically once you do.
+                    </p>
+                  </div>
+                )}
+
+                {print === "real" && (
+                  <div className="bubble agent accent">
+                    <p>
+                      Done. My identity is anchored in the Secure Element, signed
+                      by you on hardware. You can trust that it is really me.
+                    </p>
+                  </div>
+                )}
+
+                {error && <div className="err">{error}</div>}
               </div>
 
-              {print === "signing" && mode === "live" && (
-                <div className="approve-hint">
-                  <div className="field-label">Waiting for your approval</div>
-                  <p className="note">
-                    The message was sent to the Ledger signer. Open the simulator,
-                    review the message on the device, and approve it there. This
-                    card verifies automatically once you do.
-                  </p>
+              <div className="convo-foot">
+                {print === "real" ? (
+                  <button className="btn block" onClick={reset}>
+                    Start over
+                  </button>
+                ) : print === "signing" ? (
                   <a
                     className="btn primary block"
                     href={speculosUrl}
@@ -231,32 +218,66 @@ export default function Page() {
                   >
                     Open Ledger signer ↗
                   </a>
-                </div>
-              )}
-
-              {result && result.ok && result.verified && (
-                <>
-                  <div className="verified-row">
-                    <Check /> Verified — recovers to the Ledger address
-                  </div>
-                  <div className="kv">
-                    <b>Signer</b> {result.address}
-                  </div>
-                  <div className="kv">
-                    <b>Signature</b> {shorten(result.signature)}
-                  </div>
-                </>
-              )}
-
-              {result && result.ok && !result.verified && (
-                <div className="err">
-                  Signature did not recover to the device address.
-                </div>
-              )}
-
-              {error && <div className="err">{error}</div>}
+                ) : !convoDone ? (
+                  <button className="btn block reply" onClick={advance}>
+                    {nextTurn.who === "you" ? `“${nextTurn.text}”` : "Continue"}
+                  </button>
+                ) : (
+                  <button
+                    className="btn primary block"
+                    onClick={proveWithLedger}
+                    disabled={mode !== "live" || busy}
+                    title={mode !== "live" ? "Speculos required for live signing" : ""}
+                  >
+                    {busy ? "Waiting for device…" : "Prove with Ledger"}
+                  </button>
+                )}
+              </div>
             </div>
           </section>
+
+          {mode === "demo" && convoDone && (
+            <p className="note">
+              Live signing needs a reachable Speculos emulator. On this hosted
+              demo the button is disabled and no signature is ever fabricated.
+            </p>
+          )}
+
+          {/* The exact identity message that gets clear-signed, shown once you reach the prove step */}
+          {(convoDone || print === "real") && (
+            <section className="card">
+              <div className="card-head">
+                <span className="tag">Identity message</span>
+                <span>EIP-191 · Ethereum</span>
+              </div>
+              <div className="card-body">
+                <div>
+                  <div className="field-label">The agent asks the human to sign</div>
+                  <div className="msg">{message || "…"}</div>
+                </div>
+
+                {result && result.ok && result.verified && (
+                  <>
+                    <div className="verified-row">
+                      <Check /> Verified — recovers to the Ledger address
+                    </div>
+                    <div className="kv">
+                      <b>Signer</b> {result.address}
+                    </div>
+                    <div className="kv">
+                      <b>Signature</b> {shorten(result.signature)}
+                    </div>
+                  </>
+                )}
+
+                {result && result.ok && !result.verified && (
+                  <div className="err">
+                    Signature did not recover to the device address.
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
         </section>
       </div>
     </main>
