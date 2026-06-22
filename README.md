@@ -8,10 +8,10 @@ only present software has no identity it can actually prove. Only a hardware
 signature, anchored in the Secure Element and confirmed by a human on the
 device's trusted display, gives an agent a real, unforgeable identity.
 
-One central line-art fingerprint is the whole demo. It starts **hollow** (a
-software credential proves nothing) and becomes **full and green** only when the
-agent proves its identity by signing a short message on a Ledger device, with a
-human approving and the signature verified to recover to the device address.
+One central line-art fingerprint is the whole demo. It starts **hollow** and
+becomes **full and green** only when the agent proves its identity by signing a
+short message on a Ledger device, with a human approving and the signature
+verified to recover to the device address.
 
 > Agents propose, humans sign, hardware enforces.
 
@@ -20,14 +20,15 @@ on the **Ledger Agent Stack**.
 
 ## What it shows
 
-- **Use software credential** — the fingerprint stays a faint outline, with a
-  duplicate peeling away. A copyable token is not an identity; anyone could
-  present the same one. (An illustrative animation, not a live operation.)
-- **Prove with Ledger** — the agent signs `I am agent-7f3a. Identity challenge:
-  0x….` (EIP-191 `personal_sign`) on the Ledger Ethereum app. The message text is
-  shown on the device (clear signing), the human approves, and the signature is
-  verified to recover to the device address. The fingerprint fills green. This is
-  the "a Ledger makes an agent real" moment.
+- **The agent speaks first.** A short, in-character intro plays one message at a
+  time, in a fixed box: the agent can act in software but cannot prove who it is,
+  because software can be copied — so it asks to be anchored in your hardware
+  wallet. Step through it to reach the action.
+- **Prove with Ledger.** The agent signs `I am agent-7f3a. Identity challenge:
+  0x….` (EIP-191 `personal_sign`) on the Ledger Ethereum app. You open the Ledger
+  signer and approve the message on the device (clear signing); the signature is
+  verified to recover to the device address, and the fingerprint fills green. This
+  is the "a Ledger makes an agent real" moment.
 
 ## Built on the Ledger Agent Stack
 
@@ -51,7 +52,7 @@ follows the DMK Skills "DMK Signing Flow" step by step:
    disconnected device is escalated, never worked around.
 4. **App management** — ensure the Ethereum app is the open app.
 5. **Operation** — `signMessage`, surfacing the required user interaction and
-   enforcing a 60-second human-confirmation timeout.
+   enforcing a human-confirmation timeout.
 
 Standards we follow from the Agent Stack docs:
 
@@ -65,7 +66,7 @@ Standards we follow from the Agent Stack docs:
 - **User rejection is a distinct outcome**, not an error; errors are classified
   per the DMK Skills table.
 - **No stub, no mock, no fabrication.** If no device is reachable the app shows
-  DEMO mode and refuses to fake a signature, screen, or verification.
+  DEMO mode and refuses to fake a signature or a verification.
 
 ### What this project does **not** use, and why
 
@@ -76,10 +77,16 @@ scope here; bolting them on would be artificial.
 
 ## Modes
 
-- **DEMO** — no emulator. The page and software animation work; the Ledger
-  button is disabled. Nothing is ever fabricated. This is how it runs on Render.
+- **DEMO** — no emulator. The page and the agent intro work; the Ledger button
+  is disabled. Nothing is ever fabricated. This is how it runs on Render.
 - **LIVE** — a Speculos emulator is reachable; a real signing round-trip happens
   and the fingerprint fills green only on real success.
+
+```bash
+npm install
+npm run build && npm run start    # DEMO mode → http://localhost:3000
+npm run live                      # full LIVE mode: Speculos + app in one command
+```
 
 See **[docs/RUN.md](docs/RUN.md)** for exact DEMO and LIVE steps.
 
@@ -115,6 +122,4 @@ robustness), and `ethers` for signature verification.
 ## Disclaimer
 
 Independent demonstration. Not an official Ledger product and not affiliated with
-or endorsed by Ledger. Emulator and testnet only. The software-credential state
-is an illustrative animation of a known limitation, not a live cryptographic
-operation.
+or endorsed by Ledger. Emulator and testnet only.
